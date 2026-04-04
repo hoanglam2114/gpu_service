@@ -22,7 +22,7 @@ WORKDIR /app
 # ── Bước 1: PyTorch + CUDA (cài riêng trước để tận dụng Docker layer cache)
 RUN pip install --upgrade pip && \
     pip install \
-        torch==2.8.0 \
+        torch==2.5.1 \
         torchvision \
         triton \
         --index-url https://download.pytorch.org/whl/cu121
