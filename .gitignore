@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+dataset_uploads/
+*.log
+.venv/
+venv/
