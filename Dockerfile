@@ -1,61 +1,56 @@
-# ── Base: CUDA 12.1 + cuDNN 8 + Python 3.11 ───────────────────────────────
-FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
+FROM pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
     TORCHDYNAMO_DISABLE=1
 
-# ── Hệ thống ───────────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3.11 python3.11-dev python3-pip \
-        git wget curl build-essential \
-        libssl-dev libffi-dev \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python \
+        git curl build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Workdir ────────────────────────────────────────────────────────────────
 WORKDIR /app
 
-# ── Bước 1: PyTorch + CUDA (cài riêng trước để tận dụng Docker layer cache)
-RUN pip install --upgrade pip && \
-    pip install \
-        torch==2.5.1 \
-        torchvision \
-        triton \
-        --index-url https://download.pytorch.org/whl/cu121
+# Stack đã verified hoạt động với unsloth (từ issue #2775)
+RUN pip install --no-cache-dir \
+        "transformers==4.52.4" \
+        "tokenizers==0.21.1" \
+        "accelerate==1.7.0" \
+        "bitsandbytes==0.46.0" \
+        "peft>=0.15.0" \
+        "trl>=0.18.0" \
+        "xformers"
 
-# ── Bước 2: bitsandbytes + xformers (phụ thuộc CUDA)
-RUN pip install \
-        bitsandbytes>=0.45.0 \
-        xformers==0.0.32.post2
+# Cài unsloth sau khi stack đã fixed
+RUN pip install --no-cache-dir --no-deps \
+        "unsloth[cu128-torch270]" \
+        unsloth_zoo
 
-# ── Bước 3: unsloth + unsloth_zoo (cần build từ git)
-RUN pip install \
-        "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo" \
-        "unsloth[base] @ git+https://github.com/unslothai/unsloth" && \
-    pip install --upgrade --no-deps tokenizers trl==0.22.2 unsloth unsloth_zoo
+RUN pip install --no-cache-dir --force-reinstall \
+        "torchvision>=0.26.0" \
+        --extra-index-url https://download.pytorch.org/whl/cu128
 
-# ── Bước 4: transformers pinned version
-RUN pip install transformers==5.2.0
+# App dependencies
+RUN pip install --no-cache-dir \
+        flask \
+        werkzeug \
+        pyngrok \
+        "nvidia-ml-py>=12.0.0" \
+        anthropic \
+        duckduckgo-search \
+        datasets \
+        rouge-score \
+        nltk \
+        scikit-learn \
+        sentence-transformers \
+        python-dotenv \
+        "huggingface-hub>=0.20.0"\
+        hf_transfer
 
-# ── Bước 5: flash-linear-attention + causal_conv1d (torch==2.8.0 only)
-RUN pip install --no-build-isolation flash-linear-attention causal_conv1d==1.6.0
-
-# ── Bước 6: app dependencies (copy requirements trước để cache)
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# ── Bước 7: NLTK data
 RUN python -c "import nltk; nltk.download('punkt', quiet=True); nltk.download('punkt_tab', quiet=True)"
 
-# ── Bước 8: Copy source code
 COPY . .
 
-# ── Port
 EXPOSE 5000
 
-# ── Entrypoint
 CMD ["python", "main.py"]

@@ -6,6 +6,10 @@ services:
     image: gpu_service:latest
     container_name: gpu_service
 
+    environment:
+      - HF_HUB_ENABLE_HF_TRANSFER=0   # tắt đi, không cần thiết
+      - HF_TOKEN=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      # nếu model cần auth
+
     # ── Đọc biến môi trường từ file .env ──────────────────────────────────
     env_file:
       - .env
@@ -19,13 +23,10 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-
-    # ── Port: host:container ───────────────────────────────────────────────
+              count: all
+              capabilities: [gpu]
     ports:
       - "5000:5000"
-
     # ── Volumes: checkpoint + upload tồn tại sau khi container restart ─────
     volumes:
       - checkpoint_data:/tmp/checkpoints
