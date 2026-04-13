@@ -1,33 +1,49 @@
-# ── Web framework ──────────────────────────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# requirements.txt — phải khớp 100% với Dockerfile
+# Base image: pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime
+# (torch 2.7.0 đã có sẵn trong image, không cần cài lại)
+#
+# Cách cài đúng thứ tự (tránh conflict):
+#   pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
+#   pip install --no-deps unsloth[cu128-torch270] unsloth_zoo
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ── ML stack (pin cứng, khớp Dockerfile) ───────────────
+transformers==4.52.4
+tokenizers==0.21.1
+accelerate==1.7.0
+bitsandbytes==0.46.0
+peft>=0.15.0
+trl>=0.18.0
+xformers
+torchvision>=0.26.0
+
+# ── unsloth: cài riêng sau với --no-deps ───────────────
+# pip install --no-deps "unsloth[cu128-torch270]" unsloth_zoo
+
+# ── Web framework ──────────────────────────────────────
 flask>=3.0.0
 werkzeug>=3.0.0
 pyngrok>=8.0.0
 
-# ── GPU monitoring ─────────────────────────────
-pynvml>=13.0.0
+# ── GPU monitoring ─────────────────────────────────────
+nvidia-ml-py>=12.0.0
 
-# ── AI / Training ──────────────────────────────
-# torch + unsloth: install separately via pip based on CUDA version
-# pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cu121
-# pip install "unsloth[cu121-torch280] @ git+https://github.com/unslothai/unsloth"
-trl==0.22.2
-transformers==5.2.0
-datasets>=4.0.0
-huggingface-hub>=0.25.0
-peft>=0.14.0
-bitsandbytes>=0.45.0
-accelerate>=1.0.0
+# ── AI / Data ──────────────────────────────────────────
+anthropic>=0.89.0
+datasets>=2.0.0
+huggingface-hub>=0.20.0
+hf_transfer
 sentence-transformers>=3.0.0
 
-# ── Evaluation ─────────────────────────────────
-anthropic>=0.89.0
+# ── Evaluation ─────────────────────────────────────────
 nltk>=3.9.0
 rouge-score>=0.1.2
 scikit-learn>=1.6.0
 
-# ── RAG / Web search ───────────────────────────
+# ── RAG / Web search ───────────────────────────────────
 duckduckgo-search>=8.0.0
 
-# ── Utilities ──────────────────────────────────
+# ── Utilities ──────────────────────────────────────────
 numpy>=2.0.0
 python-dotenv>=1.0.0

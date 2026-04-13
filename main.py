@@ -31,7 +31,15 @@ app.register_blueprint(worker_bp)
 
 
 def _start_ngrok() -> str | None:
-    """Khởi động ngrok tunnel, trả về public URL hoặc None nếu lỗi."""
+    """Khởi động ngrok tunnel, trả về public URL hoặc None nếu lỗi.
+
+    Tắt hoàn toàn khi:
+      - DISABLE_NGROK=true  (deploy lên server có IP public / H100)
+      - NGROK_TOKEN chưa set
+    """
+    if config.DISABLE_NGROK:
+        print("ℹ️  DISABLE_NGROK=true — bỏ qua ngrok, dùng IP server trực tiếp.")
+        return None
     if not config.NGROK_TOKEN:
         print("⚠️  NGROK_TOKEN chưa set — bỏ qua ngrok, chỉ chạy local.")
         return None
@@ -55,6 +63,8 @@ if __name__ == "__main__":
     # Job manager chạy trong daemon thread — tự tắt khi main process thoát
     manager = threading.Thread(target=job_manager_thread, daemon=True, name="job-manager")
     manager.start()
+
+    _start_ngrok()
 
     app.run(
         host="0.0.0.0",

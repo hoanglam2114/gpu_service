@@ -11,9 +11,13 @@ load_dotenv()
 class Config:
     # Ngrok
     NGROK_TOKEN: str = os.environ.get("NGROK_TOKEN", "")
+    DISABLE_NGROK: bool = os.environ.get("DISABLE_NGROK", "false").lower() == "true"
 
     # Anthropic
     ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
+
+    # HuggingFace
+    HF_TOKEN: str = os.environ.get("HF_TOKEN", "")
 
     # Backend Node.js
     BACKEND_URL: str = os.environ.get("BACKEND_URL", "http://localhost:3000")

@@ -8,7 +8,7 @@ services:
 
     environment:
       - HF_HUB_ENABLE_HF_TRANSFER=0   # tắt đi, không cần thiết
-      - HF_TOKEN=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      # nếu model cần auth
+      # HF_TOKEN và các secrets khác đọc từ .env — KHÔNG hardcode ở đây
 
     # ── Đọc biến môi trường từ file .env ──────────────────────────────────
     env_file:
