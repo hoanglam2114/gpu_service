@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: gpu_service:latest
+    image: hoanglam51/gpu-service:latest
     container_name: gpu_service
 
     environment:

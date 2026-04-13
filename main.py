@@ -51,7 +51,6 @@ def _start_ngrok() -> str | None:
 
 
 if __name__ == "__main__":
-    _start_ngrok()
 
     # Job manager chạy trong daemon thread — tự tắt khi main process thoát
     manager = threading.Thread(target=job_manager_thread, daemon=True, name="job-manager")

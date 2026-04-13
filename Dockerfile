@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Stack đã verified hoạt động với unsloth (từ issue #2775)
+# ── RUN #1: Toàn bộ ML stack + app deps gộp 1 lần ─────────────────────────
+# Lý do gộp: pip resolve 1 lần duy nhất, tránh conflict giữa các RUN
 RUN pip install --no-cache-dir \
         "transformers==4.52.4" \
         "tokenizers==0.21.1" \
@@ -19,18 +20,16 @@ RUN pip install --no-cache-dir \
         "bitsandbytes==0.46.0" \
         "peft>=0.15.0" \
         "trl>=0.18.0" \
-        "xformers"
+        "xformers" \
+        "torchvision>=0.26.0" \
+        --extra-index-url https://download.pytorch.org/whl/cu128
 
-# Cài unsloth sau khi stack đã fixed
+# ── RUN #2: unsloth riêng (--no-deps để tránh nó override ML stack) ─────────
 RUN pip install --no-cache-dir --no-deps \
         "unsloth[cu128-torch270]" \
         unsloth_zoo
 
-RUN pip install --no-cache-dir --force-reinstall \
-        "torchvision>=0.26.0" \
-        --extra-index-url https://download.pytorch.org/whl/cu128
-
-# App dependencies
+# ── RUN #3: App deps — đặt sau unsloth để không bị override ─────────────────
 RUN pip install --no-cache-dir \
         flask \
         werkzeug \
@@ -42,9 +41,9 @@ RUN pip install --no-cache-dir \
         rouge-score \
         nltk \
         scikit-learn \
-        sentence-transformers \
+        "sentence-transformers>=3.0.0" \
         python-dotenv \
-        "huggingface-hub>=0.20.0"\
+        "huggingface-hub>=0.20.0" \
         hf_transfer
 
 RUN python -c "import nltk; nltk.download('punkt', quiet=True); nltk.download('punkt_tab', quiet=True)"
@@ -52,5 +51,4 @@ RUN python -c "import nltk; nltk.download('punkt', quiet=True); nltk.download('p
 COPY . .
 
 EXPOSE 5000
-
 CMD ["python", "main.py"]
